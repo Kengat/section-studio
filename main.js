@@ -178,7 +178,7 @@ function stripLayout(Sx) {
 }
 function stripPanels(Sx, pxPerMm, draw) {
   for (const p of stripLayout(Sx)) {
-    const S2 = { ...Sx, view: "sec", hour: p.hour, lightFollows: true, focusR: 0, edgeFade: 3, topClip: 0, offX: 0, offZ: 0, scale: String(p.sc), scaleN: p.sc, depthFade: 0.9 };
+    const S2 = { ...Sx, ...(Sx.stripRel ? { hRel: "1", hTmin: -8, hTmax: 14, cutStyle: "3", cutSmooth: true, cutSeams: false } : {}), view: "sec", hour: p.hour, lightFollows: true, focusR: 0, edgeFade: 3, topClip: 0, offX: 0, offZ: 0, scale: String(p.sc), scaleN: p.sc, depthFade: 0.9 };
     const st = thermalState(S2), M = makeM(S2, [p.crop[0], p.crop[3]], [p.w, p.h]);
     draw(p, S2, st, M);
   }
