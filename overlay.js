@@ -204,6 +204,12 @@ export function drawOverlay(ctx, S, st, M, mmToPx, pxPerMm) {
     }
     txt(T.cold, [x0, y0 - pt(4)], 12, rgb(rampColor(S, 0.05)), "left", fHead, 600); txt(T.hot, [x0 + w, y0 - pt(4)], 12, rgb(rampColor(S, 0.95)), "right", fHead, 600);
     txt(rel ? T.rel : "°C", [x0 + w / 2, y0 - pt(4)], 10, soft, "center");
+    if (S.cutRampOwn) {
+      const y1 = y0 - 16 * pxPerMm, st2 = [S.cr0, S.cr1, S.cr2, S.cr3, S.cr4].map(h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
+      for (let i = 0; i < 100; i++) { const x = i / 99 * 4, k = Math.min(3, Math.floor(x)), f = x - k; ctx.fillStyle = rgb(st2[k].map((v, j) => v + (st2[k + 1][j] - v) * f)); ctx.fillRect(x0 + w * i / 100, y1, w / 100 + 1, h * 0.6); }
+      ctx.strokeRect(x0, y1, w, h * 0.6);
+      txt(S.lang === "ru" ? "в разрезе (накопленное тепло), та же шкала °C" : (S.lang === "ca" ? "a la secció (calor acumulada), mateixa escala" : (S.lang === "es" ? "en la sección (calor acumulado), misma escala" : "in the cut (stored heat), same °C scale")), [x0, y1 - pt(3)], 9, soft, "left");
+    }
     txt(T.model, [st.sheet[0] * pxPerMm - 16 * pxPerMm, st.sheet[1] * pxPerMm - 7 * pxPerMm], 7, soft, "right");
   }
   // ---- scale bar and levels

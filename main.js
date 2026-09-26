@@ -132,7 +132,9 @@ function setUniforms(Sx, st, M, res, vw) {
   gl.uniform1i(U.uSlot0, st.now[0]); gl.uniform1f(U.uSlotW, st.now[1]);
   gl.uniform1i(U.uLightSlot0, st.light[0]); gl.uniform1f(U.uLightW, st.light[1]); gl.uniform1f(U.uLightOn, st.light[2]);
   ["cPaper", "cInk", "cCut", "cVeg", "cAccent"].forEach(k => gl.uniform3f(U[k], ...c3(Sx[k])));
-  gl.uniform3fv(U.cCool, c3(Sx.r0)); gl.uniform3fv(U.cRamp, [Sx.r0, Sx.r1, Sx.r2, Sx.r3, Sx.r4].flatMap(c3));
+  gl.uniform3fv(U.cCool, c3(Sx.r0));
+  gl.uniform3fv(U.cRampCut, (Sx.cutRampOwn ? [Sx.cr0, Sx.cr1, Sx.cr2, Sx.cr3, Sx.cr4] : [Sx.r0, Sx.r1, Sx.r2, Sx.r3, Sx.r4]).flatMap(c3));
+  gl.uniform1f(U.uCutSmooth, Sx.cutSmooth ? 1 : 0); gl.uniform1f(U.uCutSeams, Sx.cutSeams ? 1 : 0); gl.uniform3fv(U.cRamp, [Sx.r0, Sx.r1, Sx.r2, Sx.r3, Sx.r4].flatMap(c3));
   gl.uniform1f(U.uDark, Sx.dark ? 1 : 0);
   const f = (u, v) => U[u] && gl.uniform1f(U[u], v);
   f("pSpacing", Sx.spacing); f("pWidth", Sx.width); f("pWobble", Sx.wobble); f("pGaps", Sx.gaps); f("pSeam", Sx.seam); f("pJitter", Sx.jitter);
@@ -175,7 +177,7 @@ function stripLayout(Sx) {
 }
 function stripPanels(Sx, pxPerMm, draw) {
   for (const p of stripLayout(Sx)) {
-    const S2 = { ...Sx, view: "sec", hour: p.hour, lightFollows: true, focusR: 0, edgeFade: 3, offX: 0, offZ: 0, scale: String(p.sc), scaleN: p.sc, depthFade: 0.9 };
+    const S2 = { ...Sx, view: "sec", hour: p.hour, lightFollows: true, focusR: 0, edgeFade: 3, topClip: 0, offX: 0, offZ: 0, scale: String(p.sc), scaleN: p.sc, depthFade: 0.9 };
     const st = thermalState(S2), M = makeM(S2, [p.crop[0], p.crop[3]], [p.w, p.h]);
     draw(p, S2, st, M);
   }

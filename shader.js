@@ -26,7 +26,9 @@ uniform int uSlot0; uniform float uSlotW;   // current lighting: slot index + bl
 uniform int uLightSlot0; uniform float uLightW; uniform float uLightOn;
 // style
 uniform vec3 cPaper, cInk, cCut, cVeg, cAccent, cCool;
-uniform vec3 cRamp[5];        // heat ramp (cold .. hot)
+uniform vec3 cRamp[5];
+uniform vec3 cRampCut[5];
+uniform float uCutSmooth, uCutSeams;        // heat ramp (cold .. hot)
 uniform float uDark;          // 0 multiply inks on paper, 1 light inks on dark paper
 uniform float pSpacing, pWidth, pWobble, pGaps, pSeam, pJitter, pToneVar, pT1, pT2, pT3, pContrast;
 uniform float pCutDensity, pCutLine, pEarthFade, pVegAmt, pDepthFade, pEdgeFade, pGrain, pLines, pAmb;
@@ -132,6 +134,12 @@ float cutT(vec2 uv){
   float x = clamp(dep/1.6,0.,1.)*40.; int i0 = int(floor(x)); int i1 = min(i0+1,40); float f = x-float(i0);
   return mix(texelFetch(tProf, ivec2(i0,grp),0).r, texelFetch(tProf, ivec2(i1,grp),0).r, f);
 }
+vec3 rampCut(float x){
+  x = clamp(x,0.,1.)*4.; int i = int(floor(min(x,3.999))); float f = x-float(i);
+  vec3 a = cRampCut[0], b = cRampCut[1];
+  for(int k=0;k<4;k++){ if(k==i){ a = cRampCut[k]; b = cRampCut[k+1]; } }
+  return mix(a,b,f);
+}
 vec3 ramp(float x){
   x = clamp(x,0.,1.)*4.; int i = int(floor(min(x,3.999))); float f = x-float(i);
   vec3 a = cRamp[0], b = cRamp[1];
@@ -182,8 +190,9 @@ void main(){
     T = cut? cutT(uv) : surfT(uv, c, svf);
     float Tr = T - mix(0., uTa, hRel);
     float heat = clamp((Tr - hTmin)/(hTmax - hTmin), 0., 1.);
-    if(hPost > 1.5) heat = (floor(heat*hPost) + .5)/hPost;
-    hotCol = ramp(heat);
+    float heat0 = heat;
+    if(hPost > 1.5 && !(cut && uCutSmooth > .5)) heat = (floor(heat*hPost) + .5)/hPost;
+    hotCol = cut? rampCut(heat) : ramp(heat);
     D = mix(D, heat, pToneHeat);
     // unit seams (200 px/m ids)
     float sr = pSeam*.10/1000.*uScale;      // seam half width in m
@@ -228,7 +237,7 @@ void main(){
         float c1 = hatch(P, angc, .34*pSpacing, .15*pWidth, px, 42, .1, .08, 4.);
         float c2 = hatch(P, angc+PI*.5, .40*pSpacing, .13*pWidth, px, 43, .1, .1, 4.);
         float v = max(c1, c2*.8);
-        if(pCutStyle==1) v = .92; if(pCutStyle==2) v = stip(P, .85, .3, .09, px, 44); if(pCutStyle==3) v = seam? .55 : .9;
+        if(pCutStyle==1) v = .92; if(pCutStyle==2) v = stip(P, .85, .3, .09, px, 44); if(pCutStyle==3) v = (seam && uCutSeams > .5)? .55 : .9;
         if(pCutStyle==4){ vec2 wc = floor(P/1.6); float hv = mod(wc.x+wc.y,2.); v = seam? 0. : (.55 + .45*hatch(P, hv>.5? 0. : PI*.5, .30*pSpacing, .16*pWidth, px, 9, .05, .0, 9.)); }
         if(pStyle==2) v = halftone(P, .8, .55, .3, px);
         if(pStyle==4) v = 0.;
