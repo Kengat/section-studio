@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Section Studio · Montjuïc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#141312; --panel:#1c1b19; --line:#2c2a27; --tx:#e8e2d6; --mute:#9a938a; --acc:#e0764a; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--tx); font:13px/1.35 "Space Grotesk", system-ui, sans-serif; overflow:hidden; }
+  #app { display:grid; grid-template-columns: 1fr 380px; height:100%; }
+  #stage { position:relative; overflow:hidden; cursor:grab; background: radial-gradient(ellipse at center, #22201d 0%, #121110 80%); }
+  #stage:active { cursor:grabbing; }
+  #gl, #ov { position:absolute; inset:0; width:100%; height:100%; }
+  #ov { pointer-events:none; }
+  #hud { position:absolute; left:14px; bottom:12px; right:14px; display:flex; gap:10px; align-items:center; pointer-events:none; }
+  #hud > * { pointer-events:auto; }
+  #timebar { flex:1; display:flex; align-items:center; gap:10px; background:rgba(20,19,18,.82); border:1px solid var(--line); border-radius:10px; padding:8px 12px; backdrop-filter: blur(6px); }
+  #timebar input[type=range] { flex:1; }
+  #clock { font: 600 20px "IBM Plex Mono", monospace; min-width:92px; }
+  #status { position:absolute; left:14px; top:12px; color:var(--mute); font-size:12px; }
+  #readout { color:var(--mute); font:12px "IBM Plex Mono", monospace; white-space:nowrap; }
+  aside { background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; min-height:0; }
+  header { padding:14px 16px 10px; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font: 500 19px "Fraunces", serif; letter-spacing:.2px; }
+  header p { margin:4px 0 0; color:var(--mute); font-size:12px; }
+  #scroll { overflow:auto; flex:1; padding:10px 12px 20px; }
+  #presets { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+  .preset { background:#11100f; border:1px solid var(--line); border-radius:8px; padding:0; color:var(--tx); cursor:pointer; text-align:left; overflow:hidden; }
+  .preset canvas { display:block; width:100%; height:auto; aspect-ratio: 176/124; background:#2a2826; }
+  .preset span { display:block; padding:5px 7px 6px; font-size:11.5px; }
+  .preset.on { outline:2px solid var(--acc); border-color:transparent; }
+  #note { margin:10px 2px 4px; color:#d9cfbf; font: 400 13px/1.4 "Fraunces", serif; min-height:36px; }
+  h2 { font: 600 11px "Space Grotesk"; text-transform:uppercase; letter-spacing:.12em; color:var(--mute); margin:16px 2px 8px; }
+  details { border-top:1px solid var(--line); }
+  summary { cursor:pointer; padding:9px 2px; font-weight:600; list-style:none; }
+  summary::before { content:"＋ "; color:var(--mute); } details[open] summary::before { content:"－ "; }
+  .grp { padding:0 2px 8px; }
+  .row { display:grid; grid-template-columns: 138px 1fr 44px; align-items:center; gap:8px; margin:5px 0; }
+  .row.c, .row.b, .row.s { grid-template-columns: 138px 1fr; }
+  .nm { color:#cfc7ba; font-size:12px; }
+  .val { color:var(--mute); font:11px "IBM Plex Mono", monospace; text-align:right; }
+  input[type=range] { width:100%; accent-color: var(--acc); }
+  input[type=color] { width:100%; height:24px; border:1px solid var(--line); background:none; padding:0; border-radius:4px; }
+  #timebar select { width:auto; flex:none; }
+  select { width:100%; background:#11100f; color:var(--tx); border:1px solid var(--line); border-radius:5px; padding:4px; }
+  .btns { display:flex; flex-wrap:wrap; gap:6px; }
+  button.b { background:#11100f; color:var(--tx); border:1px solid var(--line); border-radius:7px; padding:7px 10px; cursor:pointer; font:inherit; }
+  button.b:hover { border-color:#4a4640; } button.b.acc { background:var(--acc); border-color:var(--acc); color:#1a120d; font-weight:600; }
+  #mine button { background:#11100f; color:var(--tx); border:1px dashed var(--line); border-radius:6px; padding:5px 8px; cursor:pointer; margin:0 4px 4px 0; }
+  .hint { color:var(--mute); font-size:11.5px; margin:6px 2px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <main id="stage">
+    <canvas id="gl"></canvas><canvas id="ov"></canvas>
+    <div id="status"></div>
+    <div id="hud">
+      <div id="timebar">
+        <button class="b" id="play" title="space">▶</button>
+        <span id="clock">17:40</span>
+        <input id="hour2" type="range" min="0" max="36" step="0.0833">
+        <select id="speed" title="speed"><option value="0.5">0.5 h/s</option><option value="1.5" selected>1.5 h/s</option><option value="4">4 h/s</option></select>
+        <span id="readout"></span>
+      </div>
+      <button class="b" id="fit" title="f">fit sheet</button>
+    </div>
+  </main>
+  <aside>
+    <header>
+      <h1>Section Studio · Montjuïc</h1>
+      <p>Section A-A′ of the Montjuïc cemetery retaining wall, Barcelona. Temperatures are computed live: real ERA5 weather + sun ray-traced on the survey model.</p>
+    </header>
+    <div id="scroll">
+      <h2>Presets · visual languages</h2>
+      <div id="presets"></div>
+      <div id="note"></div>
+      <h2>My variants</h2>
+      <div id="mine"></div>
+      <div class="btns"><button class="b" id="save">save as preset</button><button class="b" id="json">settings → JSON</button><button class="b" id="load">JSON → settings</button></div>
+      <p class="hint">Right-click one of your presets to delete it.</p>
+      <h2>Parameters</h2>
+      <div id="params"></div>
+      <h2>Export</h2>
+      <div class="btns"><button class="b acc" id="exp300">A1 · 300 dpi PNG</button><button class="b" id="exp150">A1 · 150 dpi</button><button class="b" id="vid">one-day video (webm)</button></div>
+      <p class="hint">Wheel: zoom · drag: pan · F: fit sheet · Space: play/pause.</p>
+    </div>
+  </aside>
+</div>
+<script type="module" src="main.js"></script>
+</body>
+</html>

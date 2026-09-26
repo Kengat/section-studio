@@ -1,0 +1,93 @@
+{
+ "views": {
+  "obl": {
+   "frame": [
+    -13.0,
+    17.0,
+    -4.5,
+    16.0
+   ],
+   "K": 0.5,
+   "TH": 45.0,
+   "ids": [
+    6000,
+    4100
+   ],
+   "fields": [
+    3000,
+    2050
+   ],
+   "suns": [
+    1500,
+    1025
+   ],
+   "nslots": {
+    "sep22": 24,
+    "jul08": 29
+   }
+  },
+  "sec": {
+   "frame": [
+    -13.0,
+    17.0,
+    -3.0,
+    12.0
+   ],
+   "K": 0.0,
+   "TH": 45.0,
+   "ids": [
+    6000,
+    3000
+   ],
+   "fields": [
+    3000,
+    1500
+   ],
+   "suns": [
+    1500,
+    750
+   ],
+   "nslots": {
+    "sep22": 24,
+    "jul08": 29
+   }
+  }
+ },
+ "SX": 29.964,
+ "mats": [
+  "rubble",
+  "brick",
+  "block",
+  "setts",
+  "paving",
+  "soil",
+  "marble"
+ ],
+ "orient": [
+  "street",
+  "north",
+  "top"
+ ],
+ "cls2mat": {
+  "1": "brick",
+  "2": "block",
+  "3": "rubble",
+  "4": "rubble",
+  "5": "rubble",
+  "6": "rubble",
+  "7": "rubble",
+  "8": "rubble",
+  "9": "rubble",
+  "11": "setts",
+  "12": "setts",
+  "13": "setts",
+  "14": "paving",
+  "15": "soil",
+  "16": "soil",
+  "17": "soil",
+  "18": "soil",
+  "19": "paving",
+  "20": "marble",
+  "21": "brick"
+ }
+}
