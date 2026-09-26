@@ -274,7 +274,8 @@ function story(ctx, S, st, pxPerMm) {
   const L = STORY[S.lang] || STORY.en; const [fHead, fBody, fk] = FONTS[S.font] || FONTS.hand; const ts = S.textScale * fk;
   const pt = v => v * 0.3528 * pxPerMm * ts; const ink = S.dark ? "#ece5d8" : "#2b2926"; const soft = S.dark ? "rgba(236,229,216,0.78)" : "rgba(43,41,38,0.78)";
   const n = st.storyNums; const secv = S.view === "sec";
-  const x0 = (secv ? 30 : (S.storyX ?? 452)) * pxPerMm; let y = (secv ? 150 : (S.storyY ?? 300)) * pxPerMm;
+  const dz = (S.offZ || 0) * 1000 / Number(S.scale || 30);   // text follows the drawing when it is moved
+  const x0 = (secv ? 30 : (S.storyX ?? 452)) * pxPerMm; let y = ((secv ? 150 : (S.storyY ?? 300)) + dz) * pxPerMm;
   const cols = [S.cAccent, S.cAccent, S.cAccent, S.cVeg];
   for (let i = 0; i < 4; i++) {
     const t1 = L[i * 2], t2 = L[i * 2 + 1].replace("%h", n.h.toFixed(1)).replace("%wmax", n.wmax.toFixed(0)).replace("%d", n.d.toFixed(0)).replace("%n", `+${n.n.toFixed(1)}`);

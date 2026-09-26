@@ -170,7 +170,8 @@ function renderRegion(Sx, st, M, x0, y0, mmpp, w, h, target) {
 function stripLayout(Sx) {
   const hours = Sx.day === "sep22" ? [8, 12, 17 + 40 / 60, 22, 28] : [8, 12, 15, 22, 28];
   const sec = Sx.view === "sec" && Sx._layout !== false;
-  const W = 70, H = 52, gap = 5.5, x0 = sec ? 30 : (Sx.stripX ?? 452), y0 = sec ? 510 : (Sx.stripY ?? 400);
+  const dz = (Sx.offZ || 0) * 1000 / Number(Sx.scale || 30);
+  const W = 70, H = 52, gap = 5.5, x0 = sec ? 30 : (Sx.stripX ?? 452), y0 = (sec ? 510 : (Sx.stripY ?? 400)) + dz;
   const crop = [-6.4, 6.1, -1.3, 8.1];                    // pure section: y from, y to, z from, z to (m)
   const sc = (crop[1] - crop[0]) * 1000 / W;
   return hours.map((h, i) => ({ hour: h, x: x0 + i * (W + gap), y: y0, w: W, h: H, crop, sc }));
