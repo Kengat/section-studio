@@ -219,7 +219,7 @@ export function drawOverlay(ctx, S, st, M, mmToPx, pxPerMm) {
       txt(`${i}`, [x0 + i * u, y0 + pt(11)], 8.5, soft, "center"); }
     ctx.strokeStyle = ink; ctx.lineWidth = 0.15 * pxPerMm; ctx.strokeRect(x0, y0, 3 * u, 1.4 * pxPerMm);
     txt("3 m", [x0 + 3 * u, y0 + pt(11)], 8.5, soft, "center"); txt(`1:${S.scaleN}`, [x0 + 3 * u + 6 * pxPerMm, y0 + 1.4 * pxPerMm], 11, ink, "left", fHead, 600);
-    for (const [z, lab, yy] of [[0, "±0.00", 0.5], [6.2, "+6.20", 2.2], [7.31, "+7.31", 0.6]]) {
+    for (const [z, lab, yy] of [[0, "±0.00", -0.9], [6.2, "+6.20", 2.2], [7.31, "+7.31", 0.6]]) {
       const p = W(M.labelPoint("lvl", [M.SX, yy, z])); const tri = [[p[0], p[1]], [p[0] - 1.5 * pxPerMm, p[1] - 2.2 * pxPerMm], [p[0] + 1.5 * pxPerMm, p[1] - 2.2 * pxPerMm], [p[0], p[1]]];
       line(tri, ink, 0.15); line([[p[0] + 1.5 * pxPerMm, p[1]], [p[0] + 12 * pxPerMm, p[1]]], ink, 0.12);
       txt(lab, [p[0] + 3 * pxPerMm, p[1] - 1 * pxPerMm], 8.5, soft, "left");

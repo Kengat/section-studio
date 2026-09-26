@@ -154,7 +154,7 @@ void main(){
   vec3 paper = cPaper*(0.985 + 0.03*(vn(P,.35,90)*.6 + vn(P,2.5,91)*.4));
   if(P.x<0.||P.y<0.||P.x>uSheetMM.x||P.y>uSheetMM.y){ outColor = vec4(cPaper*0.82,1.); return; }
   vec2 o = obl(P); vec2 uv = tuv(o);
-  float inkG=0., inkC=0., inkV=0., inkH=0.; vec3 hotCol = cAccent; float washA = 0.; vec3 washC = cAccent;
+  float inkG=0., inkC=0., inkV=0., inkH=0., inkE=0.; vec3 hotCol = cAccent; float washA = 0.; vec3 washC = cAccent;
   bool cov=false, cut=false, veg=false; int c=-1; float T=uTa, d=0., z=0., svf=1.;
   if(inside(uv)){
     int fl = flags_at(uv); cov = (fl&1)!=0; cut = (fl&2)!=0; veg = (fl&4)!=0;
@@ -243,14 +243,22 @@ void main(){
         if(pStyle==4) v = 0.;
         v *= ctx? .45 : 1.; if(seam && pCutStyle!=1 && pCutStyle!=3 && pCutStyle!=4) v = 0.;
         inkC = max(inkC, v*cutAmt);
+      } else if(c==18){                                        // drainage gravel: packed round pebbles ~35 mm, never fades
+        float cs = 35./uScale;                                   // pebble cell in sheet mm
+        vec2 g = floor(P/cs); vec2 cc = (g + .5 + .3*(vec2(h2(int(g.x),int(g.y),71), h2(int(g.x),int(g.y),72))-.5))*cs;
+        float rr = cs*(.34 + .08*h2(int(g.x),int(g.y),73));
+        float ring = abs(length(P-cc)-rr);
+        inkC = max(inkC, max(clamp(.5-(ring-.07)/px,0.,1.), .3)*cutAmt);
+      } else if(c==19){                                        // drain pipe
+        inkC = max(inkC, .95*cutAmt);
       } else {
         float dep = dec16(texture(tSec,uv).rg)*4. + (vn(P,6.,49)-.5)*.5;
         float ef = 1. - sm(dep, .25, pEarthFade);
-        float e = stip(P, .75*ef, .36, .075, px, 45)*.9;
+        float e = stip(P, .8*ef, .36, .085, px, 45)*.95;
         e = max(e, hatch(P, radians(-20.), 1.4, .11, px, 47, .18, .55, 2.)*.55*sm(ef,.35,.8));
         if(pCutStyle==1) e = ef*.5;
         if(pCutStyle==4){ vec2 wc = floor(P/1.6); float hv = mod(wc.x+wc.y,2.); e = ef*(.25+.55*hatch(P, hv>.5? 0. : PI*.5, .36*pSpacing, .12*pWidth, px, 9, .05, .0, 9.)); } if(pStyle==2) e = halftone(P, .6*ef, .6, .3, px);
-        inkC = max(inkC, e*cutAmt*.8);
+        inkE = max(inkE, e*cutAmt*.85);
       }
     } else {
       // ------------------------------------------------ elevation beyond
@@ -360,7 +368,7 @@ void main(){
     float kind = cut? 0.75 : (veg? 0.5 : 0.25);
     outColor = vec4(floor(q/256.)/255., mod(q,256.)/255., kind, 1.); return;
   }
-  inkG*=kf; inkC*=kf; inkV*=kf; inkH*=kf; washA*=kf;
+  inkG*=kf; inkC*=kf; inkV*=kf; inkH*=kf; inkE*=kf; washA*=kf;
   // ---------------------------------------------------------- composite
   vec3 inkCol = mix(cInk, hotCol, hInk);          // thermal ink: the stroke colour is the temperature
   vec3 cutCol = mix(cCut, hotCol, hCut);
@@ -376,6 +384,7 @@ void main(){
     col *= mix(vec3(1.), cVeg/cPaper, clamp(inkV,0.,1.));
     col *= mix(vec3(1.), inkCol/cPaper, clamp(inkG,0.,1.));
     col *= mix(vec3(1.), cutCol/cPaper, clamp(inkC,0.,1.));
+    col *= mix(vec3(1.), mix(cCut, hotCol, .35*hCut)/cPaper, clamp(inkE,0.,1.));
     vec3 hc = hIso>0.||hDots>0.||hHalo>0.? mix(cAccent, hotCol, step(.5, hInk+hHalo*0.)) : cAccent;
     col *= mix(vec3(1.), hotCol/cPaper, clamp(inkH,0.,1.));
   } else {
@@ -383,6 +392,7 @@ void main(){
     col = mix(col, cVeg, clamp(inkV,0.,1.));
     col = mix(col, inkCol, clamp(inkG,0.,1.));
     col = mix(col, cutCol, clamp(inkC,0.,1.));
+    col = mix(col, mix(cCut, hotCol, .35*hCut), clamp(inkE,0.,1.));
     col = mix(col, hotCol, clamp(inkH,0.,1.));
   }
   col *= (1. - pGrain*.05) + pGrain*.05*vn(P,.12,92)*2.;

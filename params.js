@@ -55,7 +55,7 @@ export const PARAMS = [
   { k: "cr2", g: "cut", t: "c", v: "#c8b89a", l: "Cut scale: middle" },
   { k: "cr3", g: "cut", t: "c", v: "#d9823f", l: "Cut scale: 4" },
   { k: "cr4", g: "cut", t: "c", v: "#a8322a", l: "Cut scale: hot" },
-  { k: "earthFade", g: "cut", t: "r", min: 0.4, max: 5, step: 0.05, v: 1.6, l: "Earth fades out, m" },
+  { k: "earthFade", g: "cut", t: "r", min: 0.4, max: 5, step: 0.05, v: 2.6, l: "Earth fades out, m" },
   // --- colour
   { k: "cPaper", g: "colour", t: "c", v: "#f3eee3", l: "Paper" },
   { k: "cInk", g: "colour", t: "c", v: "#2e2c29", l: "Graphite" },
