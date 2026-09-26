@@ -9,6 +9,7 @@ precision highp float; precision highp int; precision highp sampler2DArray;
 in vec2 vUv; out vec4 outColor;
 uniform sampler2D tIds, tGeo, tDep, tNrm, tCol, tSec, tAir, tProf;
 uniform sampler2DArray tSun;
+uniform sampler2D tPhoto;
 uniform vec4 uFrame;          // oblique frame of the data (sx0,sx1,sz0,sz1)
 uniform vec2 uSheetMM;        // sheet size (mm)
 uniform vec2 uOrigin;         // oblique coords (m) of the sheet's top-left corner
@@ -216,6 +217,7 @@ void main(){
       float vv = max(s1*(.55+.45*sm(D,.2,.7)), s2)*cs;
       if(pStyle==3 || pStyle==6){ vv = .55 + .3*sm(D,.2,.8); }
       if(pStyle==2) vv = halftone(P, .35+.5*D, .7, .6, px);
+      if(pStyle==10) vv = 0.;
       if(dry) inkG = max(inkG, vv*.55*fade); else { inkV = max(inkV, vv*pVegAmt*fade); inkV = max(inkV, (.16+.12*vn(P,3.,37))*pVegAmt); }
     } else if(cut){
       // ------------------------------------------------ section poche
@@ -265,6 +267,7 @@ void main(){
           vec2 cell = floor(P/1.6); float hv = mod(cell.x+cell.y, 2.);
           g = hatch(P, hv>.5? 0. : PI*.5, .32*pSpacing, .12*pWidth, px, 9, .05, .0, 9.) * (.45+.55*D);
         }
+        if(pStyle==10) g = 0.;
         if(seam && pStyle < 7) g = 0.;
       } else if(isSoil(c)){
         float dens = clamp(.45*(.35+.9*D),0.,1.);
@@ -272,6 +275,7 @@ void main(){
         if(pStyle==7){ float lift = clamp(T-uTa,-8.,20.)*pRidge*.18; float q = (P.y+lift)/(.9*pSpacing); g = clamp(.5-(abs(fract(q)-.5)*.9*pSpacing-.07*pWidth)/px,0.,1.); }
         if(pStyle==8){ vec2 f = abs(fract(P/(2.2*pSpacing))-.5)*2.2*pSpacing; g = max(clamp(.5-(min(f.x,f.y)-.05*pWidth)/px,0.,1.)*.7, .08+.3*D); }
       } else g = .1*D;
+      if(pStyle==10) g = 0.;
       inkG = max(inkG, g*.9*fade);
     }
     // ------------------------------------------------ heat
@@ -349,6 +353,11 @@ void main(){
   vec3 inkCol = mix(cInk, hotCol, hInk);          // thermal ink: the stroke colour is the temperature
   vec3 cutCol = mix(cCut, hotCol, hCut);
   vec3 col = paper;
+  if(pStyle==10 && inside(uv)){
+    vec4 ph = texture(tPhoto, uv);
+    float a = ph.a * (cut? 0. : 1.) * kf * mix(1., fade, .6);
+    col = mix(col, ph.rgb, a);
+  }
   if(hPhotoCol>0. && cov && !cut){ vec3 pc = texture(tCol,uv).rgb; col = mix(col, col*mix(vec3(1.), pc*1.25, .55), hPhotoCol); }
   if(uDark < .5){
     col *= mix(vec3(1.), washC/cPaper, washA);

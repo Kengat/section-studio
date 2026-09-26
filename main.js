@@ -28,7 +28,7 @@ function tex2d(img) {
 async function ensure(v, day) {
   if (!TEX[v]) {
     status(`loading view «${v}»…`);
-    const names = ["ids", "geo", "dep", "nrm", "col", "sec", "air"];
+    const names = ["ids", "geo", "dep", "nrm", "col", "sec", "air", "photo"];
     const imgs = await Promise.all(names.map(n => bitmap(`data/${v}_${n}.png`)));
     TEX[v] = Object.fromEntries(names.map((n, i) => [n, tex2d(imgs[i])]));
   }
@@ -120,7 +120,7 @@ function setUniforms(Sx, st, M, res, vw) {
   gl.useProgram(prog);
   const bind = (name, t, unit, target = gl.TEXTURE_2D) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(target, t); gl.uniform1i(U[name], unit); };
   bind("tIds", T.ids, 0); bind("tGeo", T.geo, 1); bind("tDep", T.dep, 2); bind("tNrm", T.nrm, 3); bind("tCol", T.col, 4);
-  bind("tSec", T.sec, 5); bind("tAir", T.air, 6); bind("tProf", PROF, 7); bind("tSun", SUN[Sx.view + Sx.day], 8, gl.TEXTURE_2D_ARRAY);
+  bind("tSec", T.sec, 5); bind("tAir", T.air, 6); bind("tPhoto", T.photo, 9); bind("tProf", PROF, 7); bind("tSun", SUN[Sx.view + Sx.day], 8, gl.TEXTURE_2D_ARRAY);
   gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, PROF);
   gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 41, 21, gl.RED, gl.FLOAT, st.prof);
   gl.uniform4f(U.uFrame, ...vm.frame); gl.uniform2f(U.uSheetMM, ...M.sheet); gl.uniform2f(U.uOrigin, ...M.org); gl.uniform1f(U.uScale, M.sc);

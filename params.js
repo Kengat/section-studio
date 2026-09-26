@@ -27,7 +27,7 @@ export const PARAMS = [
   { k: "hTmin", g: "heat", t: "r", min: -20, max: 40, step: 0.5, v: -12, l: "Cold end, °C" },
   { k: "hTmax", g: "heat", t: "r", min: 0, max: 70, step: 0.5, v: 12, l: "Hot end, °C" },
   // --- style
-  { k: "style", g: "style", t: "s", o: [["0", "Hatching"], ["1", "Stipple"], ["2", "Halftone"], ["3", "Flat fill"], ["4", "Lines only"], ["5", "Engraving"], ["6", "Cells"], ["7", "Ridges (heat lifts the lines)"], ["8", "Pencil grid"], ["9", "Weave"]], v: "0", l: "Technique" },
+  { k: "style", g: "style", t: "s", o: [["0", "Hatching"], ["1", "Stipple"], ["2", "Halftone"], ["3", "Flat fill"], ["4", "Lines only"], ["5", "Engraving"], ["6", "Cells"], ["7", "Ridges (heat lifts the lines)"], ["8", "Pencil grid"], ["9", "Weave"], ["10", "Photoreal (the model as found)"]], v: "0", l: "Technique" },
   { k: "spacing", g: "style", t: "r", min: 0.4, max: 3, step: 0.01, v: 1, l: "Stroke spacing" },
   { k: "width", g: "style", t: "r", min: 0.3, max: 4, step: 0.01, v: 1, l: "Stroke width" },
   { k: "ridge", g: "style", t: "r", min: 0, max: 4, step: 0.01, v: 1, l: "Ridge lift" },
@@ -187,4 +187,9 @@ export const PRESETS = [
   P("Instruction drawing", "In the spirit of Sol LeWitt's instructions: one direction of lines for mild heat, two for hot, three for very hot. Density IS temperature.",
     { toneHeat: 1, hInk: 0.25, style: "0", jitter: 0, t1: 0.52, t2: 0.7, t3: 0.86, spacing: 0.8, seam: 0, cutStyle: "3", hCut: 1,
       cPaper: "#fbfaf6", cInk: "#1d1d1b", lines: 0.6, vegAmt: 0.4, font: "grotesk", grain: 0.3 }),
+  P("As found · photoreal", "The survey model itself, rendered in Blender (Cycles) at 22 Sep 17:40 with its real materials. The cut stays drawn; no heat overlay.",
+    { style: "10", hInk: 0, hWash: 0, hCut: 0, cutStyle: "0", ovTemps: false, ovPerson: false, story: false, strip: false, ovLegend: false, depthFade: 0.3, lightFollows: false }),
+  P("Photoreal + heat", "The real wall, and on top of it only the heat: a warm glaze where surfaces are hotter than the air, numbers and the person-thermometer.",
+    { style: "10", hInk: 0, hWash: 0.35, hCut: 0.7, cutStyle: "0", depthFade: 0.3, lightFollows: false, hTmin: 0, hTmax: 14,
+      r0: "#f3eee3", r1: "#f3eee3", r2: "#f1c8a0", r3: "#e0643a", r4: "#b8161a" }),
 ];

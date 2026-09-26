@@ -21,7 +21,7 @@ Temperatures are modelled, not measured. Treat them as indicative (±3 °C): alb
 typical values from the literature.
 
 ## Use
-- **Presets:** 34 visual languages. Click a thumbnail, then adjust anything in *Parameters*.
+- **Presets:** 36 visual languages, including a photoreal render of the model. Click a thumbnail, then adjust anything in *Parameters*.
 - **Time bar:** drag through a day and night, or press ▶ (Space).
 - **Wheel** zooms, **drag** pans, **F** fits the sheet (A1 landscape, 1:30).
 - **My variants:** save your settings as a preset in your browser, or exchange them as JSON.
