@@ -154,7 +154,7 @@ void main(){
   vec3 paper = cPaper*(0.985 + 0.03*(vn(P,.35,90)*.6 + vn(P,2.5,91)*.4));
   if(P.x<0.||P.y<0.||P.x>uSheetMM.x||P.y>uSheetMM.y){ outColor = vec4(cPaper*0.82,1.); return; }
   vec2 o = obl(P); vec2 uv = tuv(o);
-  float inkG=0., inkC=0., inkV=0., inkH=0., inkE=0.; vec3 hotCol = cAccent; float washA = 0.; vec3 washC = cAccent;
+  float inkG=0., inkC=0., inkV=0., inkH=0., inkE=0., inkL=0.; vec3 hotCol = cAccent; float washA = 0.; vec3 washC = cAccent;
   bool cov=false, cut=false, veg=false; int c=-1; float T=uTa, d=0., z=0., svf=1.;
   if(inside(uv)){
     int fl = flags_at(uv); cov = (fl&1)!=0; cut = (fl&2)!=0; veg = (fl&4)!=0;
@@ -323,11 +323,26 @@ void main(){
         if(((f2&2)!=0) != cut) cedge = 1.;
       }
     }
+    // the section line: a bold continuous contour where the cut meets anything that is not cut (air included)
+    float cutL = 0.;
+    if(cut && pCutLine > 0.){
+      float cr = max(pCutLine*.16*uScale/1000., tex_px*.7); float n = 0.;
+      for(int k=0;k<12;k++){
+        float a = float(k)*PI/6.; vec2 u2 = tuv(o + cr*vec2(cos(a), sin(a)));
+        vec2 u3 = tuv(o + .55*cr*vec2(cos(a+.26), sin(a+.26)));
+        int bit = (c==11||c==12||c==13||c==14||c==19||c==18)? 8 : 2;      // setts & paving: smoothed silhouette; wall: raw ragged cut
+        n += ((flags_at(u2)&bit)==0 ? 1. : 0.) + ((flags_at(u3)&bit)==0 ? 1. : 0.);
+      }
+      cutL = clamp(n/2.5, 0., 1.);
+      if(isSoil(c) && z < -0.3) cutL = 0.;
+    }
+    bool settZone = (c==11||c==12||c==13||c==14||c==18||c==19) && (flags_at(uv)&8)!=0;
+    if(settZone){ edge = 0.; cedge = 0.; }
     if(cut && isSoil(c)) { edge *= 0.; }
     if(cut && isSoil(c) && z < -0.3) cedge *= 0.;
     if(veg){ inkV = max(inkV, edge*.8); edge = 0.; }
     inkG = max(inkG, edge*.85*fade*step(.001,pLines));
-    inkC = max(inkC, cedge*step(.001,pCutLine)*1.);
+    inkL = max(inkL, cutL);
   } else if(inside(uv) && hHalo > 0.){
     // ------------------------------------------------ air: heat rings from warm surfaces nearby
     vec3 a = texture(tAir,uv).rgb;
@@ -368,7 +383,7 @@ void main(){
     float kind = cut? 0.75 : (veg? 0.5 : 0.25);
     outColor = vec4(floor(q/256.)/255., mod(q,256.)/255., kind, 1.); return;
   }
-  inkG*=kf; inkC*=kf; inkV*=kf; inkH*=kf; inkE*=kf; washA*=kf;
+  inkG*=kf; inkC*=kf; inkV*=kf; inkH*=kf; inkE*=kf; inkL*=kf; washA*=kf;
   // ---------------------------------------------------------- composite
   vec3 inkCol = mix(cInk, hotCol, hInk);          // thermal ink: the stroke colour is the temperature
   vec3 cutCol = mix(cCut, hotCol, hCut);
@@ -385,6 +400,7 @@ void main(){
     col *= mix(vec3(1.), inkCol/cPaper, clamp(inkG,0.,1.));
     col *= mix(vec3(1.), cutCol/cPaper, clamp(inkC,0.,1.));
     col *= mix(vec3(1.), mix(cCut, hotCol, .35*hCut)/cPaper, clamp(inkE,0.,1.));
+    col *= mix(vec3(1.), cCut/cPaper, clamp(inkL,0.,1.));
     vec3 hc = hIso>0.||hDots>0.||hHalo>0.? mix(cAccent, hotCol, step(.5, hInk+hHalo*0.)) : cAccent;
     col *= mix(vec3(1.), hotCol/cPaper, clamp(inkH,0.,1.));
   } else {
@@ -393,6 +409,7 @@ void main(){
     col = mix(col, inkCol, clamp(inkG,0.,1.));
     col = mix(col, cutCol, clamp(inkC,0.,1.));
     col = mix(col, mix(cCut, hotCol, .35*hCut), clamp(inkE,0.,1.));
+    col = mix(col, cCut, clamp(inkL,0.,1.));
     col = mix(col, hotCol, clamp(inkH,0.,1.));
   }
   col *= (1. - pGrain*.05) + pGrain*.05*vn(P,.12,92)*2.;
