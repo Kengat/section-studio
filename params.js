@@ -44,7 +44,7 @@ export const PARAMS = [
   { k: "vegAmt", g: "style", t: "r", min: 0, max: 1.5, step: 0.01, v: 0.95, l: "Planting" },
   { k: "grain", g: "style", t: "r", min: 0, max: 3, step: 0.01, v: 1, l: "Paper grain" },
   // --- cut
-  { k: "cutStyle", g: "cut", t: "s", o: [["0", "Stone by stone"], ["1", "Solid"], ["2", "Stipple"], ["3", "Heat only"]], v: "0", l: "Poché" },
+  { k: "cutStyle", g: "cut", t: "s", o: [["0", "Stone by stone"], ["1", "Solid"], ["2", "Stipple"], ["3", "Heat only"], ["4", "Weave (heat threads)"]], v: "0", l: "Poché" },
   { k: "cutDensity", g: "cut", t: "r", min: 0, max: 1.2, step: 0.01, v: 1, l: "Cut density" },
   { k: "cutLine", g: "cut", t: "r", min: 0, max: 3, step: 0.01, v: 1, l: "Cut outline" },
   { k: "earthFade", g: "cut", t: "r", min: 0.4, max: 5, step: 0.05, v: 1.6, l: "Earth fades out, m" },
@@ -85,6 +85,7 @@ export const PARAMS = [
   { k: "offX", g: "sheet", t: "r", min: -6, max: 6, step: 0.05, v: 0, l: "Shift drawing X, m" },
   { k: "offZ", g: "sheet", t: "r", min: -4, max: 6, step: 0.05, v: 0, l: "Shift drawing Z, m" },
   { k: "scale", g: "sheet", t: "s", o: [["30", "1:30"], ["40", "1:40"], ["50", "1:50"], ["25", "1:25"], ["20", "1:20"]], v: "30", l: "Scale" },
+  { k: "topClip", g: "sheet", t: "r", min: 0, max: 200, step: 1, v: 0, l: "Crop the drawing at the top, mm" },
   { k: "edgeFade", g: "sheet", t: "r", min: 0, max: 60, step: 1, v: 18, l: "Edge dissolve, mm" },
   { k: "focusR", g: "sheet", t: "r", min: 0, max: 30, step: 0.25, v: 10.5, l: "Focus radius, m (0 = all)" },
   { k: "focusX", g: "sheet", t: "r", min: -10, max: 10, step: 0.25, v: -2.5, l: "Focus centre X, m" },
@@ -102,6 +103,10 @@ export const DEFAULTS = Object.fromEntries(PARAMS.map(p => [p.k, p.v]));
 const NIGHT = { dark: true, cPaper: "#1d1c1a", cInk: "#d8d1c3", cCut: "#cfc6b6", cVeg: "#7f9a78", r2: "#8c8478", r0: "#6f8fb5", r1: "#9fb2bd", r3: "#e0874f", r4: "#ff5a3a" };
 const P = (name, note, o) => ({ name, note, o });
 export const PRESETS = [
+  P("★ Main · banded wall, woven cut", "The working version: the wall and ground beyond in flat bands of heat (after Fisk's meander maps), the cut woven from threads coloured by the heat stored in the mass. Drawing lowered to the middle of the sheet, trimmed at the top.",
+    { style: "3", hInk: 1, hPost: 7, hWash: 0.35, lines: 0.7, seam: 1.1, cutStyle: "4", spacing: 0.9, hCut: 0.8, cutLine: 1.8, cCut: "#3b2f2a", cPaper: "#f4efe2",
+      r0: "#6d9bb5", r1: "#a9c9a4", r2: "#e9dcae", r3: "#e8a06a", r4: "#c65a5a", cVeg: "#7fa27a", grain: 0.8, font: "serif",
+      offZ: 1.6, topClip: 34, stripY: 440, storyY: 330 }),
   P("Thermal ink", "The colour of every stroke is the temperature of that surface: red is hotter than the air, blue is cooler, graphite is the same as the air.", {}),
   P("Graphite & ember", "A graphite drawing; red wash and stipple only where a surface is hotter than the air.",
     { hInk: 0, hWash: 0.16, hDots: 0.8, hCut: 0.6, hTmin: 0, hTmax: 16 }),

@@ -143,7 +143,7 @@ function setUniforms(Sx, st, M, res, vw) {
   f("hInk", Sx.hInk); f("hWash", Sx.hWash); f("hIso", Sx.hIso); f("hDots", Sx.hDots); f("hHalo", Sx.hHalo); f("hTmin", Sx.hTmin); f("hTmax", Sx.hTmax);
   f("hIsoStep", Sx.hIsoStep); f("hRel", Number(Sx.hRel)); f("hCut", Sx.hCut); f("hMisreg", 0); f("hPhotoCol", Sx.photoCol);
   gl.uniform3f(U.uFocus, Sx.focusX, Sx.focusZ, Sx.focusR); f("uFocusSoft", Sx.focusSoft);
-  gl.uniform1i(U.uOut, Sx._out || 0); f("hPost", Sx.hPost); f("pToneHeat", Sx.toneHeat); f("pRidge", Sx.ridge);
+  gl.uniform1i(U.uOut, Sx._out || 0); f("hPost", Sx.hPost); f("pToneHeat", Sx.toneHeat); f("pRidge", Sx.ridge); f("pTopClip", Sx.topClip);
 }
 // render a sheet region into pixels: returns ImageData (w x h), region given in sheet mm
 let FB = null;

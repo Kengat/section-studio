@@ -34,7 +34,7 @@ uniform int pStyle;           // 0 hatch 1 stipple 2 halftone 3 flat 4 lines-onl
 uniform int pCutStyle;        // 0 per-stone hatch 1 solid 2 stipple 3 thermal fill
 uniform float hInk, hWash, hIso, hDots, hHalo, hTmin, hTmax, hIsoStep, hRel, hCut, hMisreg, hPhotoCol;
 uniform float uTime;          // for subtle animation (not used for data)
-uniform float hPost, pToneHeat, pRidge;
+uniform float hPost, pToneHeat, pRidge, pTopClip;
 uniform int uOut;             // 0 drawing, 1 temperature field (R,G = T, B = kind)
 uniform vec3 uFocus;          // focus centre (sx, sz) and radius (m); radius 0 = off
 uniform float uFocusSoft;
@@ -229,16 +229,18 @@ void main(){
         float c2 = hatch(P, angc+PI*.5, .40*pSpacing, .13*pWidth, px, 43, .1, .1, 4.);
         float v = max(c1, c2*.8);
         if(pCutStyle==1) v = .92; if(pCutStyle==2) v = stip(P, .85, .3, .09, px, 44); if(pCutStyle==3) v = seam? .55 : .9;
+        if(pCutStyle==4){ vec2 wc = floor(P/1.6); float hv = mod(wc.x+wc.y,2.); v = seam? 0. : (.55 + .45*hatch(P, hv>.5? 0. : PI*.5, .30*pSpacing, .16*pWidth, px, 9, .05, .0, 9.)); }
         if(pStyle==2) v = halftone(P, .8, .55, .3, px);
         if(pStyle==4) v = 0.;
-        v *= ctx? .45 : 1.; if(seam && pCutStyle!=1 && pCutStyle!=3) v = 0.;
+        v *= ctx? .45 : 1.; if(seam && pCutStyle!=1 && pCutStyle!=3 && pCutStyle!=4) v = 0.;
         inkC = max(inkC, v*cutAmt);
       } else {
         float dep = dec16(texture(tSec,uv).rg)*4. + (vn(P,6.,49)-.5)*.5;
         float ef = 1. - sm(dep, .25, pEarthFade);
         float e = stip(P, .75*ef, .36, .075, px, 45)*.9;
         e = max(e, hatch(P, radians(-20.), 1.4, .11, px, 47, .18, .55, 2.)*.55*sm(ef,.35,.8));
-        if(pCutStyle==1) e = ef*.5; if(pStyle==2) e = halftone(P, .6*ef, .6, .3, px);
+        if(pCutStyle==1) e = ef*.5;
+        if(pCutStyle==4){ vec2 wc = floor(P/1.6); float hv = mod(wc.x+wc.y,2.); e = ef*(.25+.55*hatch(P, hv>.5? 0. : PI*.5, .36*pSpacing, .12*pWidth, px, 9, .05, .0, 9.)); } if(pStyle==2) e = halftone(P, .6*ef, .6, .3, px);
         inkC = max(inkC, e*cutAmt*.8);
       }
     } else {
@@ -336,6 +338,7 @@ void main(){
   float e = min(min(P.x, P.y), min(uSheetMM.x-P.x, uSheetMM.y-P.y));
   float nz = (vn(P,7.,65)-.5)*pEdgeFade*.8 + (vn(P,1.5,66)-.5)*pEdgeFade*.25;
   float kf = pEdgeFade>0.? sm(e+nz, 2., pEdgeFade) : 1.;
+  if(pTopClip > 0.) kf *= sm(P.y - pTopClip + nz*.5, 0., max(pEdgeFade*.6, 1.));
   if(uFocus.z > 0.){
     float fd = length((o - uFocus.xy)*vec2(1., 1.25)) + (vn(P,9.,67)-.5)*uFocusSoft*.9 + (vn(P,2.,68)-.5)*uFocusSoft*.3;
     kf *= 1. - sm(fd, uFocus.z, uFocus.z + uFocusSoft);
