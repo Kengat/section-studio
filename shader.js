@@ -10,6 +10,7 @@ in vec2 vUv; out vec4 outColor;
 uniform sampler2D tIds, tGeo, tDep, tNrm, tCol, tSec, tAir, tProf;
 uniform sampler2DArray tSun;
 uniform sampler2D tPhoto;
+uniform sampler2D tPrint;     // the sun print (asfound/sunprint), a finished sheet mapped 1:1 onto the A1
 uniform vec4 uFrame;          // oblique frame of the data (sx0,sx1,sz0,sz1)
 uniform vec2 uSheetMM;        // sheet size (mm)
 uniform vec2 uOrigin;         // oblique coords (m) of the sheet's top-left corner
@@ -32,7 +33,7 @@ uniform float uCutSmooth, uCutSeams;        // heat ramp (cold .. hot)
 uniform float uDark;          // 0 multiply inks on paper, 1 light inks on dark paper
 uniform float pSpacing, pWidth, pWobble, pGaps, pSeam, pJitter, pToneVar, pT1, pT2, pT3, pContrast;
 uniform float pCutDensity, pCutLine, pEarthFade, pVegAmt, pDepthFade, pEdgeFade, pGrain, pLines, pAmb;
-uniform int pStyle;           // 0 hatch 1 stipple 2 halftone 3 flat 4 lines-only 5 engraving 6 cells(colour)
+uniform int pStyle;           // 0 hatch 1 stipple 2 halftone 3 flat 4 lines-only 5 engraving 6 cells(colour) ... 11 sun print (static sheet)
 uniform int pCutStyle;        // 0 per-stone hatch 1 solid 2 stipple 3 thermal fill
 uniform float hInk, hWash, hIso, hDots, hHalo, hTmin, hTmax, hIsoStep, hRel, hCut, hMisreg, hPhotoCol;
 uniform float uTime;          // for subtle animation (not used for data)
@@ -153,6 +154,7 @@ void main(){
   float px = uView.z;
   vec3 paper = cPaper*(0.985 + 0.03*(vn(P,.35,90)*.6 + vn(P,2.5,91)*.4));
   if(P.x<0.||P.y<0.||P.x>uSheetMM.x||P.y>uSheetMM.y){ outColor = vec4(cPaper*0.82,1.); return; }
+  if(pStyle==11 && uOut==0){ outColor = vec4(texture(tPrint, P/uSheetMM).rgb, 1.); return; }
   vec2 o = obl(P); vec2 uv = tuv(o);
   float inkG=0., inkC=0., inkV=0., inkH=0., inkE=0., inkL=0.; vec3 hotCol = cAccent; float washA = 0.; vec3 washC = cAccent;
   bool cov=false, cut=false, veg=false; int c=-1; float T=uTa, d=0., z=0., svf=1.;

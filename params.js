@@ -27,7 +27,8 @@ export const PARAMS = [
   { k: "hTmin", g: "heat", t: "r", min: -20, max: 40, step: 0.5, v: -12, l: "Cold end, °C" },
   { k: "hTmax", g: "heat", t: "r", min: 0, max: 70, step: 0.5, v: 12, l: "Hot end, °C" },
   // --- style
-  { k: "style", g: "style", t: "s", o: [["0", "Hatching"], ["1", "Stipple"], ["2", "Halftone"], ["3", "Flat fill"], ["4", "Lines only"], ["5", "Engraving"], ["6", "Cells"], ["7", "Ridges (heat lifts the lines)"], ["8", "Pencil grid"], ["9", "Weave"], ["10", "Photoreal (the model as found)"]], v: "0", l: "Technique" },
+  { k: "style", g: "style", t: "s", o: [["0", "Hatching"], ["1", "Stipple"], ["2", "Halftone"], ["3", "Flat fill"], ["4", "Lines only"], ["5", "Engraving"], ["6", "Cells"], ["7", "Ridges (heat lifts the lines)"], ["8", "Pencil grid"], ["9", "Weave"], ["10", "Photoreal (the model as found)"], ["11", "Sun print (poppy juice, static render)"]], v: "0", l: "Technique" },
+  { k: "printHand", g: "style", t: "b", v: false, l: "Sun print: hand colouring near the cut" },
   { k: "spacing", g: "style", t: "r", min: 0.4, max: 3, step: 0.01, v: 1, l: "Stroke spacing" },
   { k: "width", g: "style", t: "r", min: 0.3, max: 4, step: 0.01, v: 1, l: "Stroke width" },
   { k: "ridge", g: "style", t: "r", min: 0, max: 4, step: 0.01, v: 1, l: "Ridge lift" },
@@ -112,6 +113,8 @@ export const DEFAULTS = Object.fromEntries(PARAMS.map(p => [p.k, p.v]));
 const NIGHT = { dark: true, cPaper: "#1d1c1a", cInk: "#d8d1c3", cCut: "#cfc6b6", cVeg: "#7f9a78", r2: "#8c8478", r0: "#6f8fb5", r1: "#9fb2bd", r3: "#e0874f", r4: "#ff5a3a" };
 const P = (name, note, o) => ({ name, note, o });
 export const PRESETS = [
+  P("★ Sun print · What the sun took", "The sheet as a sun print on corn-poppy juice: the sun of 22 September, sunrise to sunset, bleached the colour where it fell (ray-traced on the survey model with ERA5 radiation). The living (grass, hedges: at air temperature) and the inside of the stone kept it, except where the day's heat soaked in. Monochrome; Drawing technique → 'hand colouring' adds watercolour near the cut (the wall in its own colours two bays deep, the cut in the colour of its heat). A finished static render: the time controls do not change it.",
+    { style: "11", printHand: false, split: false, strip: false, story: false, numbers: false }),
   P("★ Main · banded wall, woven cut", "The working version: the wall and ground beyond in flat bands of heat (after Fisk's meander maps); the cut takes the smooth heat gradient and palette of 'Weave': warm at the sunlit face, cool in the core.",
     { style: "3", hInk: 1, hPost: 7, hWash: 0.35, lines: 0.7, cPaper: "#f4efe2",
       r0: "#6d9bb5", r1: "#a9c9a4", r2: "#e9dcae", r3: "#e8a06a", r4: "#c65a5a", cVeg: "#7fa27a", grain: 0.8, font: "serif",
