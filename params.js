@@ -28,6 +28,7 @@ export const PARAMS = [
   { k: "hTmax", g: "heat", t: "r", min: 0, max: 70, step: 0.5, v: 12, l: "Hot end, °C" },
   // --- style
   { k: "style", g: "style", t: "s", o: [["0", "Hatching"], ["1", "Stipple"], ["2", "Halftone"], ["3", "Flat fill"], ["4", "Lines only"], ["5", "Engraving"], ["6", "Cells"], ["7", "Ridges (heat lifts the lines)"], ["8", "Pencil grid"], ["9", "Weave"], ["10", "Photoreal (the model as found)"], ["11", "Sun print (poppy juice, static render)"]], v: "0", l: "Technique" },
+  { k: "printSheet", g: "style", t: "s", o: [["took", "What the sun took (section)"], ["saw", "What the wall saw (solargraph)"]], v: "took", l: "Static sheet" },
   { k: "printHand", g: "style", t: "b", v: false, l: "Sun print: hand colouring near the cut" },
   { k: "spacing", g: "style", t: "r", min: 0.4, max: 3, step: 0.01, v: 1, l: "Stroke spacing" },
   { k: "width", g: "style", t: "r", min: 0.3, max: 4, step: 0.01, v: 1, l: "Stroke width" },
@@ -114,7 +115,9 @@ const NIGHT = { dark: true, cPaper: "#1d1c1a", cInk: "#d8d1c3", cCut: "#cfc6b6",
 const P = (name, note, o) => ({ name, note, o });
 export const PRESETS = [
   P("★ Sun print · What the sun took", "The sheet as a sun print on corn-poppy juice: the sun of 22 September, sunrise to sunset, bleached the colour where it fell (ray-traced on the survey model with ERA5 radiation). The living (grass, hedges: at air temperature) and the inside of the stone kept it, except where the day's heat soaked in. Monochrome; Drawing technique → 'hand colouring' adds watercolour near the cut (the wall in its own colours two bays deep, the cut in the colour of its heat). A finished static render: the time controls do not change it.",
-    { style: "11", printHand: false, split: false, strip: false, story: false, numbers: false }),
+    { style: "11", printSheet: "took", printHand: false, split: false, strip: false, story: false, numbers: false }),
+  P("★ What the wall saw · solargraph", "A companion sheet (A4): a pinhole camera in the largest real cavity of the wall (the missing stone, 4.93 m up), looking at the street for 114 days, 1 June → 22 September 2026. Every day the sun burnt its arc; the arcs crowd and burn on the right, the afternoon sun that heats this face. Where the plane trees stand in front of the sun nothing is written; breaks are clouds. Computed, not exposed: ICGC LiDAR, pvlib sun positions, ERA5 direct irradiance.",
+    { style: "11", printSheet: "saw", split: false, strip: false, story: false, numbers: false }),
   P("★ Main · banded wall, woven cut", "The working version: the wall and ground beyond in flat bands of heat (after Fisk's meander maps); the cut takes the smooth heat gradient and palette of 'Weave': warm at the sunlit face, cool in the core.",
     { style: "3", hInk: 1, hPost: 7, hWash: 0.35, lines: 0.7, cPaper: "#f4efe2",
       r0: "#6d9bb5", r1: "#a9c9a4", r2: "#e9dcae", r3: "#e8a06a", r4: "#c65a5a", cVeg: "#7fa27a", grain: 0.8, font: "serif",

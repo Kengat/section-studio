@@ -8,7 +8,7 @@ const ORIGIN = { obl: [-10.5, 13.9], sec: [-11.6, 13.2] };
 let S = { ...DEFAULTS };
 let META, TH, gl, prog, U = {};
 const TEX = {}, SUN = {};
-let PROF, PRINT = null, PRINT_MONO = null;
+let PROF, PRINT = null, PRINT_MONO = null, PRINT_SAW = null;
 const view = { x0: 0, y0: 0, mmpp: 1 };
 const glc = $("#gl"), ovc = $("#ov"), octx = ovc.getContext("2d");
 const status = s => { $("#status").textContent = s || ""; };
@@ -127,7 +127,7 @@ function setUniforms(Sx, st, M, res, vw) {
   gl.useProgram(prog);
   const bind = (name, t, unit, target = gl.TEXTURE_2D) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(target, t); gl.uniform1i(U[name], unit); };
   bind("tIds", T.ids, 0); bind("tGeo", T.geo, 1); bind("tDep", T.dep, 2); bind("tNrm", T.nrm, 3); bind("tCol", T.col, 4);
-  bind("tSec", T.sec, 5); bind("tAir", T.air, 6); bind("tPhoto", T.photo, 9); { const pt = Sx.printHand ? PRINT : PRINT_MONO; if (pt) bind("tPrint", pt, 10); } bind("tProf", PROF, 7); bind("tSun", SUN[Sx.view + Sx.day], 8, gl.TEXTURE_2D_ARRAY);
+  bind("tSec", T.sec, 5); bind("tAir", T.air, 6); bind("tPhoto", T.photo, 9); { const pt = Sx.printSheet === "saw" ? PRINT_SAW : (Sx.printHand ? PRINT : PRINT_MONO); if (pt) bind("tPrint", pt, 10); } bind("tProf", PROF, 7); bind("tSun", SUN[Sx.view + Sx.day], 8, gl.TEXTURE_2D_ARRAY);
   gl.activeTexture(gl.TEXTURE7); gl.bindTexture(gl.TEXTURE_2D, PROF);
   gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 41, 21, gl.RED, gl.FLOAT, st.prof);
   gl.uniform4f(U.uFrame, ...vm.frame); gl.uniform2f(U.uSheetMM, ...M.sheet); gl.uniform2f(U.uOrigin, ...M.org); gl.uniform1f(U.uScale, M.sc);
@@ -242,7 +242,7 @@ function render() {
   const mmpp = view.mmpp / dpr;
   setUniforms(Sx, st, M, [W, H], [view.x0, view.y0, mmpp, mmpp]); gl.drawArrays(gl.TRIANGLES, 0, 3);
   octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, W, H);
-  if (S.style === "11") { $("#readout").textContent = "sun print · 22 Sep 2026, sunrise → sunset (static render)"; return; }
+  if (S.style === "11") { $("#readout").textContent = (S.printSheet === "saw" ? "solargraph · 1 Jun → 22 Sep 2026 (static render, A4 sheet)" : "sun print · 22 Sep 2026, sunrise → sunset (static render)"); return; }
   const pxPerMm = 1 / mmpp, toPx = p => [(p[0] - view.x0) * pxPerMm, (p[1] - view.y0) * pxPerMm];
   if (S.split) {
     const [S2, st2, M2] = splitState(Sx); const a = toPx([S.splitX, 0]); const x0 = Math.max(0, Math.round(a[0]));
@@ -341,9 +341,14 @@ function tick(t) { if (!playing) return; const dt = Math.min(0.1, (t - lastT) / 
   S.hour = (S.hour + dt * Number($("#speed").value)) % 36; controls.hour(); syncClock(); render(); requestAnimationFrame(tick); }
 
 // ---------------------------------------------------------------- export: A1 at a chosen dpi (tiled)
-async function save(blob, name) {
-  try { const r = await fetch(`save?name=${encodeURIComponent(name)}`, { method: "POST", body: blob }); if (!r.ok) throw 0; status(`saved: asfound/app/exports/${name}`); }
-  catch { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); status(""); }
+// write into asfound/app/exports via the local server; retries, and only a manual export may fall back to a browser download
+async function save(blob, name, allowDownload = true) {
+  for (let k = 0; k < 5; k++) {
+    try { const r = await fetch(`save?name=${encodeURIComponent(name)}`, { method: "POST", body: blob }); if (r.ok) { status(`saved: asfound/app/exports/${name}`); return true; } } catch { }
+    await new Promise(z => setTimeout(z, 500 * (k + 1)));
+  }
+  if (!allowDownload) { status(`could not save ${name}`); return false; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); status(""); return false;
 }
 async function exportSheet(dpi, forceName) {
   const W = Math.round(SHEET[0] / 25.4 * dpi), H = Math.round(SHEET[1] / 25.4 * dpi), mm = 25.4 / dpi;
@@ -398,21 +403,29 @@ function exportJSON() { save(new Blob([JSON.stringify(S, null, 1)], { type: "app
 function importJSON() { const i = document.createElement("input"); i.type = "file"; i.accept = ".json"; i.onchange = async () => { S = { ...DEFAULTS, ...JSON.parse(await i.files[0].text()) }; syncAll(); await onChange("view"); }; i.click(); }
 
 window.ASF = { batch: async (dpi) => { const P = PRESETS; for (let i = 0; i < P.length; i++) { await applyPreset(i); await exportSheet(dpi, `preset_${String(i).padStart(2, "0")}.png`); } await applyPreset(0); return "done"; }, get S() { return S; }, set: async o => { Object.assign(S, o); syncAll(); await onChange("view"); await onChange("day"); }, preset: applyPreset, exportSheet, recordDay, fit,
+  // the drawing alone (no vector overlay) of the whole sheet at one moment, for offline composites (asfound/timedepth)
+  frame: async (o, dpi, name) => { const Sx = { ...S, ...o }; const st = thermalState(Sx), M = makeM(Sx);
+    const mm = 25.4 / dpi, W = Math.round(SHEET[0] / mm), H = Math.round(SHEET[1] / mm), T = 2048;
+    const big = document.createElement("canvas"); big.width = W; big.height = H; const bctx = big.getContext("2d");
+    for (let ty = 0; ty < H; ty += T) for (let tx = 0; tx < W; tx += T) { const w = Math.min(T, W - tx), h = Math.min(T, H - ty);
+      bctx.putImageData(renderRegion(Sx, st, M, tx * mm, ty * mm, mm, w, h), tx, ty); }
+    const ok = await save(await new Promise(r => big.toBlob(r, "image/png")), name, false);
+    return { ok, Ta: st.Ta, sunEl: st.sunEl || -10, T: st.T }; },
   // raw temperature field of the whole sheet (R,G = T16, B = kind) for offline renderers (asfound/bloom)
   field: async (o, dpi, name) => { const Sx = { ...S, ...o, focusR: 0, topClip: 0, edgeFade: 0, _out: 1 }; const st = thermalState(Sx), M = makeM(Sx);
     const mm = 25.4 / dpi, W = Math.round(SHEET[0] / mm), H = Math.round(SHEET[1] / mm), T = 2048;
     const big = document.createElement("canvas"); big.width = W; big.height = H; const bctx = big.getContext("2d");
     for (let ty = 0; ty < H; ty += T) for (let tx = 0; tx < W; tx += T) { const w = Math.min(T, W - tx), h = Math.min(T, H - ty);
       bctx.putImageData(renderRegion(Sx, st, M, tx * mm, ty * mm, mm, w, h), tx, ty); }
-    await save(await new Promise(r => big.toBlob(r, "image/png")), name);
-    return { W, H, Ta: st.Ta, org: M.org, sc: M.sc, T: st.T, sunAz: st.sunAz, sunEl: st.sunEl, sunVec: st.sunVec }; } };
+    const ok = await save(await new Promise(r => big.toBlob(r, "image/png")), name, false);
+    return { ok, W, H, Ta: st.Ta, org: M.org, sc: M.sc, T: st.T, sunAz: st.sunAz, sunEl: st.sunEl, sunVec: st.sunVec }; } };
 
 // ---------------------------------------------------------------- boot
 (async () => {
   initGL();
   status("loading data…");
   [META, TH] = await Promise.all([fetch("data/meta.json").then(r => r.json()), fetch("data/thermal.json").then(r => r.json())]);
-  [PRINT, PRINT_MONO] = await Promise.all([loadPrint("data/sunprint.jpg"), loadPrint("data/sunprint_mono.jpg")]);
+  [PRINT, PRINT_MONO, PRINT_SAW] = await Promise.all([loadPrint("data/sunprint.jpg"), loadPrint("data/sunprint_mono.jpg"), loadPrint("data/solargraph.jpg")]);
   buildUI(); await ensure(S.view, S.day); await ensure("sec", S.day); fit();
   $("#play").onclick = togglePlay; $("#fit").onclick = fit;
   $("#hour2").addEventListener("input", () => { S.hour = Number($("#hour2").value); controls.hour(); syncClock(); requestRender(); });
